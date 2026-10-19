@@ -28,6 +28,7 @@
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Target/CGPassBuilderOption.h"
 #include "llvm/Transforms/Scalar/LoopDataPrefetch.h"
+#include "llvm/Transforms/Utils/Mem2Reg.h"
 #include "llvm/Transforms/Vectorize/LoopIdiomVectorize.h"
 
 using namespace llvm;
@@ -68,6 +69,12 @@ public:
 };
 
 void RISCVCodeGenPassBuilder::addIRPasses(PassManagerWrapper &PMW) {
+  // The OpenGPU device ABI has no stack. Clang at -O0 emits an alloca for
+  // every local, including vector values. Promote those allocas before
+  // instruction selection so an unoptimized device kernel stays in registers.
+  if (TM.getTargetTriple().getArch() == Triple::opengpu)
+    addFunctionPass(PromotePass(), PMW);
+
   addFunctionPass(AtomicExpandPass(TM), PMW);
   addFunctionPass(RISCVZacasABIFixPass(&getTM()), PMW);
 

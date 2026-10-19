@@ -38,6 +38,7 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Utils.h"
 #include <optional>
 using namespace llvm;
 
@@ -56,6 +57,7 @@ extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCVTarget() {
   initializeMachineKCFILegacyPass(*PR);
   initializeRISCVDeadRegisterDefinitionsPass(*PR);
   initializeRISCVOpenGPUABILoweringPass(*PR);
+  initializeRISCVOpenGPUO0PreparePass(*PR);
   initializeRISCVLateBranchOptPass(*PR);
   initializeRISCVMakeCompressibleOptPass(*PR);
   initializeRISCVQCRelaxMarkingPass(*PR);
@@ -383,6 +385,11 @@ FunctionPass *RISCVPassConfig::createRVVRegAllocPass(bool Optimized) {
 }
 
 bool RISCVPassConfig::addRegAssignAndRewriteFast() {
+  // The device ABI has no stack. The fast allocator spills a vector that is
+  // live across a block, so an unoptimized kernel uses the global allocator.
+  if (TM->getTargetTriple().getArch() == Triple::opengpu)
+    return addRegAssignAndRewriteOptimized();
+
   addPass(createRVVRegAllocPass(false));
   addPass(createRISCVInsertVSETVLIPass());
   if (TM->getOptLevel() != CodeGenOptLevel::None && CLOpts.enable_dead_defs)
@@ -400,6 +407,32 @@ bool RISCVPassConfig::addRegAssignAndRewriteOptimized() {
 }
 
 void RISCVPassConfig::addIRPasses() {
+  // The OpenGPU device ABI has no stack. Clang at -O0 still emits an alloca
+  // for every local, including vector values, and the ABI lowering then
+  // refuses the function. Promote those allocas before instruction selection
+  // so an unoptimized device kernel stays in registers.
+  if (TM->getTargetTriple().getArch() == Triple::opengpu) {
+    // Unoptimized device code still has calls and constant branches. Fold
+    // those before mem2reg so the kernel stays in registers.
+    if (getOptLevel() == CodeGenOptLevel::None)
+      addPass(createRISCVOpenGPUO0PreparePass());
+    addPass(createPromoteMemoryToRegisterPass());
+    if (getOptLevel() == CodeGenOptLevel::None) {
+      // mem2reg exposes the constant conditions that were stored to allocas.
+      addPass(createRISCVOpenGPUO0PreparePass());
+      addPass(createLoopSimplifyPass());
+      addPass(createLCSSAPass());
+      // The sandbox admits only forward branches. Fully unroll a constant
+      // trip count instead of leaving a backward jump.
+      addPass(createLoopUnrollPass(/*OptLevel=*/2, /*OnlyWhenForced=*/false,
+                                   /*ForgetAllSCEV=*/false,
+                                   /*Threshold=*/32768));
+      // Unrolling leaves a constant exit test. Fold it and drop the dead
+      // copy so the shader has no branch for the sandbox to reject.
+      addPass(createRISCVOpenGPUO0PreparePass());
+    }
+  }
+
   addPass(createAtomicExpandLegacyPass());
   addPass(createRISCVZacasABIFixLegacyPass());
 
@@ -588,6 +621,14 @@ void RISCVPassConfig::addPreRegAlloc() {
 }
 
 void RISCVPassConfig::addFastRegAlloc() {
+  // Tied vector operands (vfmacc, vfmul) are lowered by the two-address
+  // pass inside the optimized allocator. The fast pipeline leaves the tied
+  // source in a different register from the destination, so the device
+  // reads an undefined vector.
+  if (TM->getTargetTriple().getArch() == Triple::opengpu) {
+    addOptimizedRegAlloc();
+    return;
+  }
   addPass(&InitUndefID);
   TargetPassConfig::addFastRegAlloc();
 }

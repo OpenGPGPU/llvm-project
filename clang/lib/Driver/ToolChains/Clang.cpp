@@ -6219,6 +6219,11 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
   }
   assert(FPKeepKindStr && "unknown FramePointerKind");
   CmdArgs.push_back(FPKeepKindStr);
+  // -O0 otherwise marks the kernel optnone, which skips both the alloca
+  // promotion and the device ABI rewrite. An unoptimized kernel would then
+  // keep a stack and a normal return, and the shader sandbox would reject it.
+  if (RawTriple.getArch() == llvm::Triple::opengpu)
+    CmdArgs.push_back("-disable-O0-optnone");
 
   Args.addOptOutFlag(CmdArgs, options::OPT_fzero_initialized_in_bss,
                      options::OPT_fno_zero_initialized_in_bss);

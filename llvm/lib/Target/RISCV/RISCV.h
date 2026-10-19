@@ -65,6 +65,9 @@ void initializeRISCVMakeCompressibleOptPass(PassRegistry &);
 FunctionPass *createRISCVOpenGPUABILoweringPass();
 void initializeRISCVOpenGPUABILoweringPass(PassRegistry &);
 
+ModulePass *createRISCVOpenGPUO0PreparePass();
+void initializeRISCVOpenGPUO0PreparePass(PassRegistry &);
+
 class RISCVGatherScatterLoweringPass
     : public OptionalPassInfoMixin<RISCVGatherScatterLoweringPass> {
 private:
