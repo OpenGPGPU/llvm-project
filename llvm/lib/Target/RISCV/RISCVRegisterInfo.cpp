@@ -196,9 +196,14 @@ BitVector RISCVRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
     for (MCPhysReg Reg = RISCV::X16_H; Reg <= RISCV::X31_H; Reg++)
       markSuperRegs(Reserved, Reg);
 
-  // The OpenGPU device ABI preloads x30 (staging stride) and x31 (uniform base)
-  // before launch, so shader code must not clobber them.
+  // The OpenGPU device ABI preloads registers before launch and shader code
+  // must not clobber them: x1 is the immutable kernarg base, x8 the trusted
+  // local index, x9 the launch capacity, x30 the staging stride and x31 the
+  // uniform base.
   if (Subtarget.isOpenGPU()) {
+    markSuperRegs(Reserved, RISCV::X1_H);
+    markSuperRegs(Reserved, RISCV::X8_H);
+    markSuperRegs(Reserved, RISCV::X9_H);
     markSuperRegs(Reserved, RISCV::X30_H);
     markSuperRegs(Reserved, RISCV::X31_H);
   }
