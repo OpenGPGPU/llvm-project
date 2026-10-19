@@ -196,6 +196,13 @@ BitVector RISCVRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
     for (MCPhysReg Reg = RISCV::X16_H; Reg <= RISCV::X31_H; Reg++)
       markSuperRegs(Reserved, Reg);
 
+  // The OpenGPU device ABI preloads x30 (staging stride) and x31 (uniform base)
+  // before launch, so shader code must not clobber them.
+  if (Subtarget.isOpenGPU()) {
+    markSuperRegs(Reserved, RISCV::X30_H);
+    markSuperRegs(Reserved, RISCV::X31_H);
+  }
+
   // V registers for code generation. We handle them manually.
   markSuperRegs(Reserved, RISCV::VL);
   markSuperRegs(Reserved, RISCV::VTYPE);

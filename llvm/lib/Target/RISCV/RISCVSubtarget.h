@@ -231,6 +231,9 @@ public:
 
   bool is64Bit() const { return IsRV64; }
   bool isLittleEndian() const { return IsLittleEndian; }
+  /// True when targeting the OpenGPU SIMT GPU (`opengpu` triple), which uses a
+  /// device calling convention and the XOpengpu custom instructions.
+  bool isOpenGPU() const { return getTargetTriple().getArch() == Triple::opengpu; }
   MVT getXLenVT() const {
     return is64Bit() ? MVT::i64 : MVT::i32;
   }

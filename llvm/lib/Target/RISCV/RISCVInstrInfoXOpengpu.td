@@ -42,12 +42,16 @@ def XOPENGPU_TEXSAMPLE : RVInstR<0b0000001, 0b000, OPC_CUSTOM_0,
 
 // opengpu.cease - permanently terminate the executing warp.
 // Encoded in the SYSTEM opcode space, funct7=0011000, rs2=00101.
+// It ends the shader path, so it is modelled as a return-like terminator.
 let hasSideEffects = 1, mayLoad = 0, mayStore = 0 in
 def XOPENGPU_CEASE : RVInstR<0b0011000, 0b000, OPC_SYSTEM, (outs), (ins),
                              "opengpu.cease", "">, Sched<[]> {
   let rs2 = 0b00101;
   let rs1 = 0;
   let rd = 0;
+  let isBarrier = 1;
+  let isReturn = 1;
+  let isTerminator = 1;
 }
 
 // Custom vector instructions share the RVV register layout (funct6, vm, vs2,

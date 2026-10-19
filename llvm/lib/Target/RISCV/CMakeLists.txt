@@ -67,6 +67,7 @@ add_llvm_target(RISCVCodeGen
   RISCVMachineScheduler.cpp
   RISCVMergeBaseOffset.cpp
   RISCVMoveMerger.cpp
+  RISCVOpenGPUABILowering.cpp
   RISCVOptWInstrs.cpp
   RISCVPromoteConstant.cpp
   RISCVPushPopOptimizer.cpp
