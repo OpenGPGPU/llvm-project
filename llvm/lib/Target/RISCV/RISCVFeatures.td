@@ -2261,6 +2261,17 @@ def TuneAvoidVXRM
                        "true", "Instructions that use VXRM should be avoided">;
 
 //===----------------------------------------------------------------------===//
+// OpenGPU Extensions
+//===----------------------------------------------------------------------===//
+
+def FeatureVendorXOpengpu
+    : RISCVExtension<1, 0,
+                     "OpenGPU custom instructions (GPU control and texture)">;
+def HasVendorXOpengpu : Predicate<"Subtarget->hasVendorXOpengpu()">,
+                        AssemblerPredicate<(all_of FeatureVendorXOpengpu),
+                            "'XOpengpu' (OpenGPU custom instructions)">;
+
+//===----------------------------------------------------------------------===//
 // CPU Families (alphabetized by vendor).
 //===----------------------------------------------------------------------===//
 
