@@ -51,9 +51,6 @@
 /* Define if the Mips target is built in */
 #cmakedefine01 LLVM_HAS_MIPS_TARGET
 
-/* Define if the OpenGPU target is built in */
-#cmakedefine01 LLVM_HAS_OPENGPU_TARGET
-
 /* Define if the MSP430 target is built in */
 #cmakedefine01 LLVM_HAS_MSP430_TARGET
 

@@ -193,7 +193,6 @@ uint16_t ELF::convertArchNameToEMachine(StringRef Arch) {
       .Case("amdgpu", EM_AMDGPU)
       .Case("riscv", EM_RISCV)
       .Case("lanai", EM_LANAI)
-      .Case("opengpu", EM_OPENGPU)
       .Case("bpf", EM_BPF)
       .Case("ve", EM_VE)
       .Case("csky", EM_CSKY)
@@ -621,8 +620,6 @@ StringRef ELF::convertEMachineToArchName(uint16_t EMachine) {
     return "riscv";
   case EM_LANAI:
     return "lanai";
-  case EM_OPENGPU:
-    return "opengpu";
   case EM_BPF:
     return "bpf";
   case EM_VE:

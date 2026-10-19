@@ -1173,7 +1173,8 @@ public:
 
   /// Tests whether the target is 32-bit RISC-V.
   bool isRISCV32() const {
-    return getArch() == Triple::riscv32 || getArch() == Triple::riscv32be;
+    return getArch() == Triple::riscv32 || getArch() == Triple::riscv32be ||
+           getArch() == Triple::opengpu;
   }
 
   /// Tests whether the target is 64-bit RISC-V.

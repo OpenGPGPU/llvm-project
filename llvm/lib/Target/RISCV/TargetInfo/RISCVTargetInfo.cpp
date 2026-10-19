@@ -31,6 +31,11 @@ Target &llvm::getTheRISCV64beTarget() {
   return TheRISCV64beTarget;
 }
 
+Target &llvm::getTheOpenGPUTarget() {
+  static Target TheOpenGPUTarget;
+  return TheOpenGPUTarget;
+}
+
 extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void
 LLVMInitializeRISCVTargetInfo() {
   RegisterTarget<Triple::riscv32, /*HasJIT=*/true> X(
@@ -41,4 +46,9 @@ LLVMInitializeRISCVTargetInfo() {
                                       "32-bit big endian RISC-V", "RISCV");
   RegisterTarget<Triple::riscv64be> B(getTheRISCV64beTarget(), "riscv64be",
                                       "64-bit big endian RISC-V", "RISCV");
+  // OpenGPU is a 32-bit RISC-V SIMT GPU.  It reuses the RISCV backend and MC
+  // layers; only the GPU custom instructions (the '+xopengpu' feature) are
+  // OpenGPU-specific.
+  RegisterTarget<Triple::opengpu, /*HasJIT=*/true> C(
+      getTheOpenGPUTarget(), "opengpu", "OpenGPU SIMT GPU", "RISCV");
 }

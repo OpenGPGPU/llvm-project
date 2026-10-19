@@ -4699,4 +4699,5 @@ LLVMInitializeRISCVAsmParser() {
   RegisterMCAsmParser<RISCVAsmParser> Y(getTheRISCV64Target());
   RegisterMCAsmParser<RISCVAsmParser> A(getTheRISCV32beTarget());
   RegisterMCAsmParser<RISCVAsmParser> B(getTheRISCV64beTarget());
+  RegisterMCAsmParser<RISCVAsmParser> C(getTheOpenGPUTarget());
 }

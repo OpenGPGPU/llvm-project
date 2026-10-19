@@ -435,7 +435,8 @@ extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void
 LLVMInitializeRISCVTargetMC() {
   static opt::RegisterLibraryOptions<RISCVMCOptions> O;
   for (Target *T : {&getTheRISCV32Target(), &getTheRISCV64Target(),
-                    &getTheRISCV32beTarget(), &getTheRISCV64beTarget()}) {
+                    &getTheRISCV32beTarget(), &getTheRISCV64beTarget(),
+                    &getTheOpenGPUTarget()}) {
     TargetRegistry::RegisterMCAsmInfo(*T, createRISCVMCAsmInfo);
     TargetRegistry::RegisterMCObjectFileInfo(*T, createRISCVMCObjectFileInfo);
     TargetRegistry::RegisterMCInstrInfo(*T, createRISCVMCInstrInfo);

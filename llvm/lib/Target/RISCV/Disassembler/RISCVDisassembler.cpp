@@ -96,6 +96,10 @@ LLVMInitializeRISCVDisassembler() {
                                          createRISCVDisassembler);
   TargetRegistry::RegisterMCSymbolizer(getTheRISCV64beTarget(),
                                        createRISCVMCSymbolizer);
+  TargetRegistry::RegisterMCDisassembler(getTheOpenGPUTarget(),
+                                         createRISCVDisassembler);
+  TargetRegistry::RegisterMCSymbolizer(getTheOpenGPUTarget(),
+                                       createRISCVMCSymbolizer);
 }
 
 template <unsigned FirstReg, unsigned NumRegsInClass, unsigned RVELimit = 0>

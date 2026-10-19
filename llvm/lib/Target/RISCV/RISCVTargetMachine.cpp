@@ -46,6 +46,7 @@ extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCVTarget() {
   RegisterTargetMachine<RISCVTargetMachine> Y(getTheRISCV64Target());
   RegisterTargetMachine<RISCVTargetMachine> A(getTheRISCV32beTarget());
   RegisterTargetMachine<RISCVTargetMachine> B(getTheRISCV64beTarget());
+  RegisterTargetMachine<RISCVTargetMachine> C(getTheOpenGPUTarget());
   static opt::RegisterLibraryOptions<RISCVOptions> O;
   auto *PR = PassRegistry::getPassRegistry();
   initializeGlobalISel(*PR);
