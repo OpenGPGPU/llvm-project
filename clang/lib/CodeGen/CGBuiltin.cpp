@@ -126,6 +126,7 @@ static Value *EmitTargetArchBuiltinExpr(CodeGenFunction *CGF,
   case llvm::Triple::riscv64:
   case llvm::Triple::riscv32be:
   case llvm::Triple::riscv64be:
+  case llvm::Triple::opengpu:
     return CGF->EmitRISCVBuiltinExpr(BuiltinID, E, ReturnValue);
   case llvm::Triple::spirv32:
   case llvm::Triple::spirv64:
