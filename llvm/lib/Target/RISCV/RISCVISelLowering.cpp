@@ -28159,6 +28159,7 @@ SDValue RISCVTargetLowering::LowerFormalArguments(
   case CallingConv::PreserveMost:
   case CallingConv::GRAAL:
   case CallingConv::RISCV_VectorCall:
+  case CallingConv::RISCV_OpenGPU:
 #define CC_VLS_CASE(ABI_VLEN) case CallingConv::RISCV_VLSCall_##ABI_VLEN:
     CC_VLS_CASE(32)
     CC_VLS_CASE(64)
@@ -28220,6 +28221,52 @@ SDValue RISCVTargetLowering::LowerFormalArguments(
   EVT PtrVT = getPointerTy(DAG.getDataLayout());
   MVT XLenVT = Subtarget.getXLenVT();
   unsigned XLenInBytes = Subtarget.getXLen() / 8;
+
+  // The OpenGPU device ABI passes no register arguments.  x1 holds the kernarg
+  // base and every argument lives at a fixed offset in the kernarg buffer:
+  // pointers become x1-relative addresses, scalars are loaded from them.  This
+  // keeps every access base in the x1 form the device sandbox admits.
+  if (CallConv == CallingConv::RISCV_OpenGPU) {
+    if (!Subtarget.isOpenGPU())
+      reportFatalUsageError(
+          "The OpenGPU calling convention requires the opengpu triple");
+    if (IsVarArg)
+      reportFatalUsageError("OpenGPU shaders cannot be variadic");
+    if (Func.hasStructRetAttr())
+      reportFatalUsageError("OpenGPU shaders cannot return aggregates in sret");
+    if (Ins.size() != Func.arg_size())
+      reportFatalUsageError(
+          "OpenGPU shaders only support single-part scalar/pointer arguments");
+
+    const DataLayout &DLayout = MF.getDataLayout();
+    Register KernargReg =
+        MF.getRegInfo().createVirtualRegister(&RISCV::GPRRegClass);
+    MF.getRegInfo().addLiveIn(RISCV::X1, KernargReg);
+    SDValue Kernarg = DAG.getCopyFromReg(Chain, DL, KernargReg, XLenVT);
+
+    uint64_t Offset = 0;
+    for (unsigned i = 0, e = Ins.size(); i != e; ++i) {
+      EVT ArgVT = Ins[i].ArgVT;
+      Type *ArgTy = Func.getArg(Ins[i].OrigArgIndex)->getType();
+      Offset = alignTo(Offset, DLayout.getABITypeAlign(ArgTy).value());
+      SDValue Addr = DAG.getNode(
+          ISD::ADD, DL, PtrVT, Kernarg,
+          DAG.getConstant(Offset, DL, getPointerTy(DLayout)));
+      if (ArgTy->isPointerTy()) {
+        InVals.push_back(Addr);
+      } else if (ArgVT == MVT::i32 || ArgVT == MVT::f32) {
+        SDValue Load = DAG.getLoad(ArgVT, DL, Chain, Addr,
+                                   MachinePointerInfo::getUnknownStack(MF));
+        Chain = Load.getValue(1);
+        InVals.push_back(Load);
+      } else {
+        reportFatalUsageError(
+            "OpenGPU shaders only support 32-bit scalar and pointer arguments");
+      }
+      Offset += DLayout.getTypeAllocSize(ArgTy);
+    }
+    return Chain;
+  }
 
   // Check if this function has any musttail calls. If so, incoming indirect
   // arg pointers must be saved in virtual registers so they survive across
@@ -28487,6 +28534,8 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
     if (Subtarget.hasStdExtE())
       reportFatalUsageError("GHC calling convention is not supported on RVE!");
     break;
+  case CallingConv::RISCV_OpenGPU:
+    reportFatalUsageError("OpenGPU shaders cannot make calls");
   }
 
   ArgCCInfo.AnalyzeCallOperands(Outs, CC_RISCV);

@@ -82,6 +82,28 @@ bool RISCVOpenGPUABILowering::runOnMachineFunction(MachineFunction &MF) {
             F, "OpenGPU shader contains a call, which the device ABI forbids"});
         return false;
       }
+
+      // Force tail- and mask-undisturbed vtype (vta = vma = 0).  The device
+      // sandbox only admits the e32,m1 tu,mu configuration, and tu/mu is a
+      // strictly stronger guarantee than the ta/ma that LLVM emits by default.
+      switch (MI.getOpcode()) {
+      case RISCV::PseudoVSETVLI:
+      case RISCV::PseudoVSETVLIX0:
+      case RISCV::PseudoVSETVLIX0X0:
+      case RISCV::PseudoVSETIVLI:
+      case RISCV::VSETVLI:
+      case RISCV::VSETIVLI: {
+        MachineOperand &VType = MI.getOperand(2);
+        int64_t Imm = VType.getImm();
+        if (Imm & 0xC0) {
+          VType.setImm(Imm & ~0xC0);
+          Changed = true;
+        }
+        break;
+      }
+      default:
+        break;
+      }
     }
     for (MachineBasicBlock::iterator I = MBB.getFirstTerminator();
          I != MBB.end(); ++I) {
