@@ -13,9 +13,10 @@
 // live in the hardware decoders under
 // src/main/scala/opengpu/core/frontend/decode in the OpenGPU repository.
 //
-// Only the scalar custom instructions are defined here.  The custom vector
-// forms (vtex.sample, vquad.dfdx/dfdy) and the custom vector-branch/join
-// controls are added with the vector support.
+// Scalar customs, the custom-1 vector forms, and the custom-2 vector-branch
+// family plus join are defined here.  The branch/join controls are decoded by
+// the device but are not selected by codegen: their execution units are not
+// part of the shader ABI.
 //
 //===----------------------------------------------------------------------===//
 
@@ -105,6 +106,38 @@ def XOPENGPU_VQUAD_DFDY : RVInstVOpengpu<0b001101, OPC_CUSTOM_1,
                          Sched<[]> {
   let vm = 1;
   let vs1 = 0;
+}
+
+// Custom-2 (opcode 0x5b) vector branches.  The Chisel pattern is
+// ?????????????????funct3?????1011011 with a B-type immediate, rs1 and rs2.
+// funct3 selects the condition the same way as a scalar branch.
+class RVInstVBranch<bits<3> funct3, string opcodestr>
+    : RVInstB<funct3, OPC_CUSTOM_2, (outs),
+              (ins GPR:$rs1, GPR:$rs2, bare_simm13_lsb0:$imm12),
+              opcodestr, "$rs1, $rs2, $imm12">, Sched<[]> {
+  let isBranch = 1;
+  let isTerminator = 1;
+  let hasSideEffects = 1;
+  let mayLoad = 0;
+  let mayStore = 0;
+}
+
+def XOPENGPU_VBEQ  : RVInstVBranch<0b000, "opengpu.vbeq">;
+def XOPENGPU_VBNE  : RVInstVBranch<0b001, "opengpu.vbne">;
+def XOPENGPU_VBLT  : RVInstVBranch<0b100, "opengpu.vblt">;
+def XOPENGPU_VBGE  : RVInstVBranch<0b101, "opengpu.vbge">;
+def XOPENGPU_VBLTU : RVInstVBranch<0b110, "opengpu.vbltu">;
+def XOPENGPU_VBGEU : RVInstVBranch<0b111, "opengpu.vbgeu">;
+
+// opengpu.join - SIMT reconvergence.  Chisel matches funct3=010 and opcode
+// 0x5b; every other field is ignored.  The canonical encoding clears them.
+let hasSideEffects = 1, mayLoad = 0, mayStore = 0 in
+def XOPENGPU_JOIN : RVInstR<0b0000000, 0b010, OPC_CUSTOM_2, (outs), (ins),
+                            "opengpu.join", "">, Sched<[]> {
+  let rs2 = 0;
+  let rs1 = 0;
+  let rd = 0;
+  let isBarrier = 1;
 }
 
 } // Predicates = [HasVendorXOpengpu]
