@@ -111,6 +111,23 @@ def GENERIC_RV64 : RISCVProcessorModel<"generic-rv64",
                                         FeatureStdExtI],
                                        GenericTuneFeatures>,
                    GenericTuneInfo;
+// `opengpu` is the OpenGPU SIMT GPU device core: RV32IMAFV with the
+// Zicsr/Zifencei extensions and the XOpengpu custom instructions.  It reuses
+// the RISCV backend via the `opengpu` triple.
+def OPENGPU : RISCVProcessorModel<"opengpu",
+                                  NoSchedModel,
+                                  [Feature32Bit,
+                                   FeatureStdExtI,
+                                   FeatureStdExtM,
+                                   FeatureStdExtA,
+                                   FeatureStdExtF,
+                                   FeatureStdExtV,
+                                   FeatureStdExtZicsr,
+                                   FeatureStdExtZifencei,
+                                   FeatureVendorXOpengpu],
+                                  GenericTuneFeatures,
+                                  "rv32imafv_zicsr_zifencei_xopengpu">,
+              GenericTuneInfo;
 // Support generic for compatibility with other targets. The triple will be used
 // to change to the appropriate rv32/rv64 version.
 def GENERIC : RISCVTuneProcessorModel<"generic", NoSchedModel>, GenericTuneInfo;
