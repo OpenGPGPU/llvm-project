@@ -574,6 +574,7 @@ set(LLVM_ALL_TARGETS
   Mips
   MSP430
   NVPTX
+  OpenGPU
   PowerPC
   RISCV
   Sparc

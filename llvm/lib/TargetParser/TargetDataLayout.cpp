@@ -545,6 +545,16 @@ static std::string computeLanaiDataLayout() {
          "-S64";    // 64 bit natural stack alignment
 }
 
+static std::string computeOpenGPUDataLayout() {
+  // Data layout (keep in sync with clang/lib/Basic/Targets.cpp)
+  return "e"        // Little endian
+         "-m:e"     // ELF name mangling
+         "-p:32:32" // 32-bit pointers, 32 bit aligned
+         "-i64:64"  // 64 bit integers, 64 bit aligned
+         "-n32"     // 32 bit native integer width
+         "-S128";   // 128 bit natural stack alignment
+}
+
 static std::string computeWebAssemblyDataLayout(const Triple &TT) {
   return TT.getArch() == Triple::wasm64
              ? (TT.isOSEmscripten() ? "e-m:e-p:64:64-p10:8:8-p20:8:8-i64:64-"
@@ -681,6 +691,8 @@ std::string Triple::computeDataLayout(StringRef ABIName) const {
     return computeSPIRVDataLayout(*this);
   case Triple::lanai:
     return computeLanaiDataLayout();
+  case Triple::opengpu:
+    return computeOpenGPUDataLayout();
   case Triple::wasm32:
   case Triple::wasm64:
     return computeWebAssemblyDataLayout(*this);

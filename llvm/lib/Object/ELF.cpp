@@ -97,6 +97,13 @@ StringRef llvm::object::getELFRelocationTypeName(uint32_t Machine,
       break;
     }
     break;
+  case ELF::EM_OPENGPU:
+    switch (Type) {
+#include "llvm/BinaryFormat/ELFRelocs/OpenGPU.def"
+    default:
+      break;
+    }
+    break;
   case ELF::EM_PPC:
     switch (Type) {
 #include "llvm/BinaryFormat/ELFRelocs/PowerPC.def"
@@ -225,6 +232,8 @@ uint32_t llvm::object::getELFRelativeRelocationType(uint32_t Machine) {
   case ELF::EM_HEXAGON:
     return ELF::R_HEX_RELATIVE;
   case ELF::EM_LANAI:
+    break;
+  case ELF::EM_OPENGPU:
     break;
   case ELF::EM_PPC:
     break;

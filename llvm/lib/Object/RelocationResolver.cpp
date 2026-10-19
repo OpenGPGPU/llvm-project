@@ -393,6 +393,17 @@ static uint64_t resolveLanai(uint64_t Type, uint64_t Offset, uint64_t S,
   llvm_unreachable("Invalid relocation type");
 }
 
+static bool supportsOpenGPU(uint64_t Type) {
+  return Type == ELF::R_OPENGPU_32;
+}
+
+static uint64_t resolveOpenGPU(uint64_t Type, uint64_t Offset, uint64_t S,
+                               uint64_t /*LocData*/, int64_t Addend) {
+  if (Type == ELF::R_OPENGPU_32)
+    return (S + Addend) & 0xFFFFFFFF;
+  llvm_unreachable("Invalid relocation type");
+}
+
 static bool supportsMips32(uint64_t Type) {
   switch (Type) {
   case ELF::R_MIPS_32:
@@ -865,6 +876,8 @@ getRelocationResolver(const ObjectFile &Obj) {
       return {supportsAVR, resolveAVR};
     case Triple::lanai:
       return {supportsLanai, resolveLanai};
+    case Triple::opengpu:
+      return {supportsOpenGPU, resolveOpenGPU};
     case Triple::loongarch32:
       return {supportsLoongArch, resolveLoongArch};
     case Triple::mipsel:

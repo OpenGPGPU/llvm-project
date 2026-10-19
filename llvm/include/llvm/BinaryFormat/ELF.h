@@ -325,6 +325,7 @@ enum {
   EM_VE = 251,            // NEC SX-Aurora VE
   EM_CSKY = 252,          // C-SKY 32-bit processor
   EM_LOONGARCH = 258,     // LoongArch
+  EM_OPENGPU = 260,       // OpenGPU 32-bit SIMT GPU (local assignment)
 };
 
 // Object file classes.
@@ -705,6 +706,11 @@ enum {
 // ELF Relocation type for Lanai.
 enum {
 #include "ELFRelocs/Lanai.def"
+};
+
+// ELF Relocation type for OpenGPU.
+enum {
+#include "ELFRelocs/OpenGPU.def"
 };
 
 // RISCV Specific e_flags

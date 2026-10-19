@@ -77,6 +77,8 @@ StringRef Triple::getArchTypeName(ArchType Kind) {
     return "kalimba";
   case lanai:
     return "lanai";
+  case opengpu:
+    return "opengpu";
   case loongarch32:
     return "loongarch32";
   case loongarch64:
@@ -347,6 +349,8 @@ StringRef Triple::getArchTypePrefix(ArchType Kind) {
     return "kalimba";
   case lanai:
     return "lanai";
+  case opengpu:
+    return "opengpu";
   case shave:
     return "shave";
   case wasm32:
@@ -514,6 +518,7 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
       .Case("spirv64", spirv64)
       .Case("kalimba", kalimba)
       .Case("lanai", lanai)
+      .Case("opengpu", opengpu)
       .Case("shave", shave)
       .Case("wasm32", wasm32)
       .Case("wasm64", wasm64)
@@ -666,6 +671,7 @@ Triple::ArchType Triple::parseArch(StringRef ArchName) {
                  Triple::spirv64)
           .StartsWith("kalimba", Triple::kalimba)
           .Case("lanai", Triple::lanai)
+          .Case("opengpu", Triple::opengpu)
           .Case("renderscript32", Triple::renderscript32)
           .Case("renderscript64", Triple::renderscript64)
           .Case("shave", Triple::shave)
@@ -979,6 +985,7 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::hsail:
   case Triple::kalimba:
   case Triple::lanai:
+  case Triple::opengpu:
   case Triple::loongarch32:
   case Triple::loongarch64:
   case Triple::m68k:
@@ -1752,6 +1759,7 @@ unsigned Triple::getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::hsail:
   case llvm::Triple::kalimba:
   case llvm::Triple::lanai:
+  case llvm::Triple::opengpu:
   case llvm::Triple::loongarch32:
   case llvm::Triple::m68k:
   case llvm::Triple::mips:
@@ -1863,6 +1871,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::hsail:
   case Triple::kalimba:
   case Triple::lanai:
+  case Triple::opengpu:
   case Triple::loongarch32:
   case Triple::m68k:
   case Triple::mips:
@@ -1963,6 +1972,7 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::hexagon:
   case Triple::kalimba:
   case Triple::lanai:
+  case Triple::opengpu:
   case Triple::m68k:
   case Triple::msp430:
   case Triple::r600:
@@ -2163,6 +2173,7 @@ Triple Triple::getLittleEndianArchVariant() const {
   switch (getArch()) {
   case Triple::UnknownArch:
   case Triple::lanai:
+  case Triple::opengpu:
   case Triple::sparcv9:
   case Triple::systemz:
   case Triple::m68k:
@@ -2502,6 +2513,7 @@ ExceptionHandling Triple::getDefaultExceptionHandling() const {
   case Triple::csky:
   case Triple::hexagon:
   case Triple::lanai:
+  case Triple::opengpu:
   case Triple::m68k:
   case Triple::msp430:
   case Triple::systemz:
