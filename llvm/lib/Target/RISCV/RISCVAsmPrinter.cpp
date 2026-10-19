@@ -716,6 +716,7 @@ LLVMInitializeRISCVAsmPrinter() {
   RegisterAsmPrinter<RISCVAsmPrinter> Y(getTheRISCV64Target());
   RegisterAsmPrinter<RISCVAsmPrinter> A(getTheRISCV32beTarget());
   RegisterAsmPrinter<RISCVAsmPrinter> B(getTheRISCV64beTarget());
+  RegisterAsmPrinter<RISCVAsmPrinter> C(getTheOpenGPUTarget());
 }
 
 void RISCVAsmPrinter::LowerHWASAN_CHECK_MEMACCESS(const MachineInstr &MI) {
