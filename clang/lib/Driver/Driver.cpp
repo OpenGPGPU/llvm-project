@@ -6358,6 +6358,7 @@ const ToolChain &Driver::getToolChain(const ArgList &Args,
       case llvm::Triple::riscv64:
       case llvm::Triple::riscv32be:
       case llvm::Triple::riscv64be:
+      case llvm::Triple::opengpu:
         TC = std::make_unique<toolchains::BareMetal>(*this, Target, Args);
         break;
       case llvm::Triple::ve:

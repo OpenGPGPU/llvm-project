@@ -110,6 +110,7 @@ add_clang_library(clangBasic
   Targets/MSP430.cpp
   Targets/Mips.cpp
   Targets/NVPTX.cpp
+  Targets/OpenGPU.cpp
   Targets/OSTargets.cpp
   Targets/PPC.cpp
   Targets/RISCV.cpp

@@ -391,6 +391,10 @@ std::string riscv::getRISCVArch(const llvm::opt::ArgList &Args,
   // We deviate from GCC's defaults here:
   // - On `riscv{XLEN}-unknown-elf` we default to `rv{XLEN}imac`
   // - On all other OSs we use `rv{XLEN}imafdc` (equivalent to `rv{XLEN}gc`)
+  // - On `opengpu` we use the OpenGPU device ISA (RV32IMAFV + XOpengpu).
+  if (Triple.getArch() == llvm::Triple::opengpu)
+    return "rv32imafv_zicsr_zifencei_xopengpu";
+
   if (Triple.isRISCV32()) {
     if (Triple.getOS() == llvm::Triple::UnknownOS)
       return "rv32imac";
@@ -425,6 +429,9 @@ std::string riscv::getRISCVTargetCPU(const llvm::opt::ArgList &Args,
 
   if (!CPU.empty())
     return CPU;
+
+  if (Triple.getArch() == llvm::Triple::opengpu)
+    return "opengpu";
 
   return Triple.isRISCV64() ? "generic-rv64" : "generic-rv32";
 }

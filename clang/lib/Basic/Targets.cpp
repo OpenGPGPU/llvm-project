@@ -28,6 +28,7 @@
 #include "Targets/MSP430.h"
 #include "Targets/Mips.h"
 #include "Targets/NVPTX.h"
+#include "Targets/OpenGPU.h"
 #include "Targets/OSTargets.h"
 #include "Targets/PPC.h"
 #include "Targets/RISCV.h"
@@ -448,6 +449,9 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
     default:
       return std::make_unique<RISCV32TargetInfo>(Triple, Opts);
     }
+
+  case llvm::Triple::opengpu:
+    return std::make_unique<OpenGPUTargetInfo>(Triple, Opts);
 
   case llvm::Triple::riscv32be:
     switch (os) {
