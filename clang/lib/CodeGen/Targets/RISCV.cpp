@@ -1092,13 +1092,24 @@ void RISCVABIInfo::createCoercedStore(llvm::Value *Val, Address Dst,
 
 namespace {
 class RISCVTargetCodeGenInfo : public TargetCodeGenInfo {
+  // True when targeting the OpenGPU device, whose kernels use a dedicated
+  // calling convention (kernarg read from x1).
+  bool IsOpenGPU;
+
 public:
   RISCVTargetCodeGenInfo(CodeGen::CodeGenTypes &CGT, unsigned XLen,
-                         unsigned FLen, bool EABI)
+                         unsigned FLen, bool EABI, bool IsOpenGPU)
       : TargetCodeGenInfo(
-            std::make_unique<RISCVABIInfo>(CGT, XLen, FLen, EABI)) {
+            std::make_unique<RISCVABIInfo>(CGT, XLen, FLen, EABI)),
+        IsOpenGPU(IsOpenGPU) {
     SwiftInfo =
         std::make_unique<SwiftABIInfo>(CGT, /*SwiftErrorInRegister=*/false);
+  }
+
+  unsigned getDeviceKernelCallingConv() const override {
+    if (IsOpenGPU)
+      return llvm::CallingConv::RISCV_OpenGPU;
+    return TargetCodeGenInfo::getDeviceKernelCallingConv();
   }
 
   void setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
@@ -1160,7 +1171,7 @@ public:
 
 std::unique_ptr<TargetCodeGenInfo>
 CodeGen::createRISCVTargetCodeGenInfo(CodeGenModule &CGM, unsigned XLen,
-                                      unsigned FLen, bool EABI) {
+                                      unsigned FLen, bool EABI, bool IsOpenGPU) {
   return std::make_unique<RISCVTargetCodeGenInfo>(CGM.getTypes(), XLen, FLen,
-                                                  EABI);
+                                                  EABI, IsOpenGPU);
 }

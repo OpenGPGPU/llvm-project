@@ -235,7 +235,9 @@ createTargetCodeGenInfo(CodeGenModule &CGM) {
   case llvm::Triple::riscv32:
   case llvm::Triple::riscv64:
   case llvm::Triple::riscv32be:
-  case llvm::Triple::riscv64be: {
+  case llvm::Triple::riscv64be:
+  case llvm::Triple::opengpu: {
+    bool IsOpenGPU = Target.getTriple().getArch() == llvm::Triple::opengpu;
     StringRef ABIStr = Target.getABI();
     unsigned XLen = Target.getPointerWidth(LangAS::Default);
     unsigned ABIFLen = 0;
@@ -244,7 +246,7 @@ createTargetCodeGenInfo(CodeGenModule &CGM) {
     else if (ABIStr.ends_with("d"))
       ABIFLen = 64;
     bool EABI = ABIStr.ends_with("e");
-    return createRISCVTargetCodeGenInfo(CGM, XLen, ABIFLen, EABI);
+    return createRISCVTargetCodeGenInfo(CGM, XLen, ABIFLen, EABI, IsOpenGPU);
   }
 
   case llvm::Triple::systemz: {

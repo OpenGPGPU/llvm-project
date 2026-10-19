@@ -29,3 +29,12 @@ bool OpenGPUTargetInfo::hasFeature(StringRef Feature) const {
     return true;
   return RISCV32TargetInfo::hasFeature(Feature);
 }
+
+TargetInfo::CallingConvCheckResult
+OpenGPUTargetInfo::checkCallingConvention(CallingConv CC) const {
+  // The device-kernel convention becomes CallingConv::RISCV_OpenGPU in the
+  // backend, where the kernarg base register carries the shader arguments.
+  if (CC == CC_DeviceKernel)
+    return CCCR_OK;
+  return RISCV32TargetInfo::checkCallingConvention(CC);
+}

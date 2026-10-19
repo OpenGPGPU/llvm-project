@@ -32,6 +32,9 @@ public:
                         MacroBuilder &Builder) const override;
 
   bool hasFeature(StringRef Feature) const override;
+
+  TargetInfo::CallingConvCheckResult
+  checkCallingConvention(CallingConv CC) const override;
 };
 
 } // namespace targets
