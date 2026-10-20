@@ -140,4 +140,44 @@ def XOPENGPU_JOIN : RVInstR<0b0000000, 0b010, OPC_CUSTOM_2, (outs), (ins),
   let isBarrier = 1;
 }
 
+// Resource-bound typed fetch and captured-operand floating sampling. The
+// component lives in funct3; all vector forms retain normal RVV masking.
+foreach C = 0-3 in {
+  let hasSideEffects = 1, mayLoad = 1, mayStore = 0 in {
+    def XOPENGPU_TEXFETCH_#C : RVInstR<0b0000010, C, OPC_CUSTOM_0,
+        (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+        "opengpu.tex.fetch." # C, "$rd, $rs1, $rs2">, Sched<[]>;
+    def XOPENGPU_TEXSAMPLEF_#C : RVInstR<0b0000100, C, OPC_CUSTOM_0,
+        (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+        "opengpu.tex.samplef." # C, "$rd, $rs1, $rs2">, Sched<[]>;
+    def XOPENGPU_VTEX_FETCH_#C : RVInstVOpengpu<0b000010, OPC_CUSTOM_1,
+        (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMaskOp:$vm),
+        "opengpu.vtex.fetch." # C, "$vd, $vs1, $vs2$vm">, Sched<[]> {
+      let Inst{14-12} = C;
+    }
+    def XOPENGPU_VTEX_SAMPLEF_#C : RVInstVOpengpu<0b000100, OPC_CUSTOM_1,
+        (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMaskOp:$vm),
+        "opengpu.vtex.samplef." # C, "$vd, $vs1, $vs2$vm">, Sched<[]> {
+      let Inst{14-12} = C;
+    }
+  }
+}
+// Eight side-effecting operand-pair writes. Encoding rd/vd is zero and is not
+// an architectural destination. The texture bank is scoped to a native task.
+foreach P = 0-7 in {
+  let hasSideEffects = 1, mayLoad = 0, mayStore = 0 in {
+    def XOPENGPU_TEXPARAMS_#P : RVInstR<0b0000011, P, OPC_CUSTOM_0,
+        (outs), (ins GPR:$rs1, GPR:$rs2),
+        "opengpu.tex.params." # P, "$rs1, $rs2">, Sched<[]> {
+      let rd = 0;
+    }
+    def XOPENGPU_VTEX_PARAMS_#P : RVInstVOpengpu<0b000011, OPC_CUSTOM_1,
+        (outs), (ins VR:$vs1, VR:$vs2, VMaskOp:$vm),
+        "opengpu.vtex.params." # P, "$vs1, $vs2$vm">, Sched<[]> {
+      let Inst{14-12} = P;
+      let vd = 0;
+    }
+  }
+}
+
 } // Predicates = [HasVendorXOpengpu]
