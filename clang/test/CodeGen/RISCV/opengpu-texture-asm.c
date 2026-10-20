@@ -39,3 +39,12 @@ unsigned fetch_texture_bits(int x, int y, unsigned unit) {
   __asm__ volatile("opengpu.tex.fetchi.0 %0, %1, %2" : "=r"(result) : "r"(unit), "r"(0u) : "memory");
   return result;
 }
+
+// CHECK-LABEL: texture_width:
+// CHECK: opengpu.tex.size.0
+// CHECK: ret
+int texture_width(unsigned unit, int lod) {
+  int result;
+  __asm__ volatile("opengpu.tex.size.0 %0, %1, %2" : "=r"(result) : "r"(unit), "r"(lod) : "memory");
+  return result;
+}

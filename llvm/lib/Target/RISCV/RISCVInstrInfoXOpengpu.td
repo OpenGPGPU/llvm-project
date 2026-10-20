@@ -170,6 +170,20 @@ foreach C = 0-3 in {
     }
   }
 }
+// Metadata-only size queries use unit and base-relative LOD from ordinary
+// source registers. No captured coordinate tuple is consumed.
+foreach C = 0-2 in {
+  let hasSideEffects = 1, mayLoad = 1, mayStore = 0 in {
+    def XOPENGPU_TEXSIZE_#C : RVInstR<0b0000110, C, OPC_CUSTOM_0,
+        (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+        "opengpu.tex.size." # C, "$rd, $rs1, $rs2">, Sched<[]>;
+    def XOPENGPU_VTEX_SIZE_#C : RVInstVOpengpu<0b000110, OPC_CUSTOM_1,
+        (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMaskOp:$vm),
+        "opengpu.vtex.size." # C, "$vd, $vs1, $vs2$vm">, Sched<[]> {
+      let Inst{14-12} = C;
+    }
+  }
+}
 // Eight side-effecting operand-pair writes. Encoding rd/vd is zero and is not
 // an architectural destination. The texture bank is scoped to a native task.
 foreach P = 0-7 in {
