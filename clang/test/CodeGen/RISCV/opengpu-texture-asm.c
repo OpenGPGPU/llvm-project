@@ -20,3 +20,22 @@ unsigned sample_texture_bits(unsigned s, unsigned t, unsigned unit) {
   __asm__ volatile("opengpu.tex.samplef.0 %0, %1, %2" : "=r"(result) : "r"(unit), "r"(1u) : "memory");
   return result;
 }
+
+// CHECK-LABEL: fetch_texture_bits:
+// CHECK: opengpu.tex.params.0
+// CHECK: opengpu.tex.params.1
+// CHECK: opengpu.tex.params.2
+// CHECK: opengpu.tex.params.3
+// CHECK: opengpu.tex.params.4
+// CHECK: opengpu.tex.params.5
+// CHECK: opengpu.tex.params.6
+// CHECK: opengpu.tex.params.7
+// CHECK: opengpu.tex.fetchi.0
+// CHECK: ret
+unsigned fetch_texture_bits(int x, int y, unsigned unit) {
+  unsigned result;
+  __asm__ volatile("opengpu.tex.params.0 %0, %1" : : "r"(x), "r"(y) : "memory");
+  PAIR(1); PAIR(2); PAIR(3); PAIR(4); PAIR(5); PAIR(6); PAIR(7);
+  __asm__ volatile("opengpu.tex.fetchi.0 %0, %1, %2" : "=r"(result) : "r"(unit), "r"(0u) : "memory");
+  return result;
+}

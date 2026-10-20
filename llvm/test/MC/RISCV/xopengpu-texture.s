@@ -289,3 +289,75 @@ opengpu.vtex.params.7 v11, v12
 # ENC: encoding: [0x2b,0xf0,0xc5,0x0c]
 # NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
 opengpu.vtex.params.7 v11, v12, v0.t
+
+# INST: opengpu.tex.fetchi.0 a0, a1, a2
+# OBJ: opengpu.tex.fetchi.0 a0, a1, a2
+# ENC: encoding: [0x0b,0x85,0xc5,0x0a]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.tex.fetchi.0 x10, x11, x12
+
+# INST: opengpu.vtex.fetchi.0 v10, v11, v12
+# OBJ: opengpu.vtex.fetchi.0 v10, v11, v12
+# ENC: encoding: [0x2b,0x85,0xc5,0x16]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.vtex.fetchi.0 v10, v11, v12
+
+# INST: opengpu.vtex.fetchi.0 v10, v11, v12, v0.t
+# OBJ: opengpu.vtex.fetchi.0 v10, v11, v12, v0.t
+# ENC: encoding: [0x2b,0x85,0xc5,0x14]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.vtex.fetchi.0 v10, v11, v12, v0.t
+
+# INST: opengpu.tex.fetchi.1 a0, a1, a2
+# OBJ: opengpu.tex.fetchi.1 a0, a1, a2
+# ENC: encoding: [0x0b,0x95,0xc5,0x0a]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.tex.fetchi.1 x10, x11, x12
+
+# INST: opengpu.vtex.fetchi.1 v10, v11, v12
+# OBJ: opengpu.vtex.fetchi.1 v10, v11, v12
+# ENC: encoding: [0x2b,0x95,0xc5,0x16]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.vtex.fetchi.1 v10, v11, v12
+
+# INST: opengpu.vtex.fetchi.1 v10, v11, v12, v0.t
+# OBJ: opengpu.vtex.fetchi.1 v10, v11, v12, v0.t
+# ENC: encoding: [0x2b,0x95,0xc5,0x14]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.vtex.fetchi.1 v10, v11, v12, v0.t
+
+# INST: opengpu.tex.fetchi.2 a0, a1, a2
+# OBJ: opengpu.tex.fetchi.2 a0, a1, a2
+# ENC: encoding: [0x0b,0xa5,0xc5,0x0a]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.tex.fetchi.2 x10, x11, x12
+
+# INST: opengpu.vtex.fetchi.2 v10, v11, v12
+# OBJ: opengpu.vtex.fetchi.2 v10, v11, v12
+# ENC: encoding: [0x2b,0xa5,0xc5,0x16]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.vtex.fetchi.2 v10, v11, v12
+
+# INST: opengpu.vtex.fetchi.2 v10, v11, v12, v0.t
+# OBJ: opengpu.vtex.fetchi.2 v10, v11, v12, v0.t
+# ENC: encoding: [0x2b,0xa5,0xc5,0x14]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.vtex.fetchi.2 v10, v11, v12, v0.t
+
+# INST: opengpu.tex.fetchi.3 a0, a1, a2
+# OBJ: opengpu.tex.fetchi.3 a0, a1, a2
+# ENC: encoding: [0x0b,0xb5,0xc5,0x0a]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.tex.fetchi.3 x10, x11, x12
+
+# INST: opengpu.vtex.fetchi.3 v10, v11, v12
+# OBJ: opengpu.vtex.fetchi.3 v10, v11, v12
+# ENC: encoding: [0x2b,0xb5,0xc5,0x16]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.vtex.fetchi.3 v10, v11, v12
+
+# INST: opengpu.vtex.fetchi.3 v10, v11, v12, v0.t
+# OBJ: opengpu.vtex.fetchi.3 v10, v11, v12, v0.t
+# ENC: encoding: [0x2b,0xb5,0xc5,0x14]
+# NOEXT: :[[@LINE+1]]:1: error: instruction requires the following:
+opengpu.vtex.fetchi.3 v10, v11, v12, v0.t

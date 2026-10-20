@@ -150,6 +150,9 @@ foreach C = 0-3 in {
     def XOPENGPU_TEXSAMPLEF_#C : RVInstR<0b0000100, C, OPC_CUSTOM_0,
         (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
         "opengpu.tex.samplef." # C, "$rd, $rs1, $rs2">, Sched<[]>;
+    def XOPENGPU_TEXFETCHI_#C : RVInstR<0b0000101, C, OPC_CUSTOM_0,
+        (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+        "opengpu.tex.fetchi." # C, "$rd, $rs1, $rs2">, Sched<[]>;
     def XOPENGPU_VTEX_FETCH_#C : RVInstVOpengpu<0b000010, OPC_CUSTOM_1,
         (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMaskOp:$vm),
         "opengpu.vtex.fetch." # C, "$vd, $vs1, $vs2$vm">, Sched<[]> {
@@ -158,6 +161,11 @@ foreach C = 0-3 in {
     def XOPENGPU_VTEX_SAMPLEF_#C : RVInstVOpengpu<0b000100, OPC_CUSTOM_1,
         (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMaskOp:$vm),
         "opengpu.vtex.samplef." # C, "$vd, $vs1, $vs2$vm">, Sched<[]> {
+      let Inst{14-12} = C;
+    }
+    def XOPENGPU_VTEX_FETCHI_#C : RVInstVOpengpu<0b000101, OPC_CUSTOM_1,
+        (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMaskOp:$vm),
+        "opengpu.vtex.fetchi." # C, "$vd, $vs1, $vs2$vm">, Sched<[]> {
       let Inst{14-12} = C;
     }
   }
