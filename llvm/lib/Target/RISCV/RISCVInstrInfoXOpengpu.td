@@ -140,6 +140,20 @@ def XOPENGPU_JOIN : RVInstR<0b0000000, 0b010, OPC_CUSTOM_2, (outs), (ins),
   let isBarrier = 1;
 }
 
+// opengpu.sync join-target - establish an explicit SIMT reconvergence scope.
+// The B-immediate names the join instruction; popping its original-mask marker
+// resumes at join-target+4. funct3=011 was reserved; rs1 and rs2 must be zero.
+// This adds assembler/disassembler support only, not automatic codegen or
+// admission to the driver's bounded shader profile.
+let hasSideEffects = 1, mayLoad = 0, mayStore = 0 in
+def XOPENGPU_SYNC : RVInstB<0b011, OPC_CUSTOM_2, (outs),
+                            (ins bare_simm13_lsb0:$imm12),
+                            "opengpu.sync", "$imm12">, Sched<[]> {
+  let rs1 = 0;
+  let rs2 = 0;
+  let isBarrier = 1;
+}
+
 // Resource-bound typed fetch and captured-operand floating sampling. The
 // component lives in funct3; all vector forms retain normal RVV masking.
 foreach C = 0-3 in {
