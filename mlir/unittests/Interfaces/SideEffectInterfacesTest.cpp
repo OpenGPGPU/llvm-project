@@ -6,6 +6,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "mlir/Dialect/Arith/IR/Arith.h"
+#include "mlir/IR/Builders.h"
+#include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/Dialect.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 #include "mlir/Support/TypeID.h"
 #include "llvm/Support/Casting.h"
@@ -15,6 +19,54 @@ using namespace mlir;
 using namespace mlir::SideEffects;
 
 namespace {
+
+struct RecursiveEffectsOp
+    : Op<RecursiveEffectsOp, OpTrait::HasRecursiveMemoryEffects> {
+  using Op::Op;
+  static StringRef getOperationName() { return "effecttest.recursive"; }
+  static ArrayRef<StringRef> getAttributeNames() { return {}; }
+};
+
+struct EffectTestDialect : Dialect {
+  explicit EffectTestDialect(MLIRContext *ctx)
+      : Dialect(getDialectNamespace(), ctx, TypeID::get<EffectTestDialect>()) {
+    addOperations<RecursiveEffectsOp>();
+    allowUnknownOperations();
+  }
+  static StringRef getDialectNamespace() { return "effecttest"; }
+};
+
+struct DeadOpFixture : testing::Test {
+  MLIRContext context;
+  Location loc = UnknownLoc::get(&context);
+  OwningOpRef<ModuleOp> module;
+
+  void SetUp() override {
+    context.getOrLoadDialect<EffectTestDialect>();
+    context.getOrLoadDialect<arith::ArithDialect>();
+    module = ModuleOp::create(loc);
+  }
+
+  Operation *makeRecursive(unsigned blocks, unsigned pureOpsPerBlock,
+                           bool unknownEffect = false) {
+    OpBuilder builder = OpBuilder::atBlockEnd(module->getBody());
+    OperationState state(loc, RecursiveEffectsOp::getOperationName());
+    state.addRegion();
+    Operation *op = builder.create(state);
+    for (unsigned i = 0; i < blocks; ++i) {
+      auto *block = new Block();
+      op->getRegion(0).push_back(block);
+      OpBuilder nested = OpBuilder::atBlockEnd(block);
+      for (unsigned j = 0; j < pureOpsPerBlock; ++j)
+        arith::ConstantIntOp::create(nested, loc, 0, 1);
+      if (unknownEffect && i == 0) {
+        OperationState unknown(loc, "effecttest.unknown");
+        nested.create(unknown);
+      }
+    }
+    return op;
+  }
+};
 
 /// Custom resource hierarchy (root -> child -> grandchild) for testing.
 struct TestRootResource : public Resource::Base<TestRootResource> {
@@ -45,6 +97,21 @@ struct TestGrandchildResource
 };
 
 } // namespace
+
+TEST_F(DeadOpFixture, SmallPureAndEffectfulRegions) {
+  EXPECT_TRUE(wouldOpBeTriviallyDead(makeRecursive(1, 2)));
+  EXPECT_FALSE(wouldOpBeTriviallyDead(makeRecursive(1, 2, true)));
+}
+
+TEST_F(DeadOpFixture, BoundedWideAndLongRegionsRemainConservative) {
+  EXPECT_TRUE(wouldOpBeTriviallyDead(makeRecursive(1, 60)));
+  EXPECT_FALSE(wouldOpBeTriviallyDead(makeRecursive(1, 61)));
+  EXPECT_TRUE(wouldOpBeTriviallyDead(makeRecursive(31, 0)));
+  EXPECT_FALSE(wouldOpBeTriviallyDead(makeRecursive(32, 0)));
+  EXPECT_FALSE(wouldOpBeTriviallyDead(makeRecursive(1, 70)));
+  EXPECT_FALSE(wouldOpBeTriviallyDead(makeRecursive(70, 0)));
+  EXPECT_FALSE(wouldOpBeTriviallyDead(makeRecursive(70, 1, true)));
+}
 
 TEST(SideEffectResourceTest, BuiltInHierarchyIsaCast) {
   EXPECT_TRUE(isa<DefaultResource>(DefaultResource::get()));
