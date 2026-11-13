@@ -103,6 +103,14 @@ TEST_F(DeadOpFixture, SmallPureAndEffectfulRegions) {
   EXPECT_FALSE(wouldOpBeTriviallyDead(makeRecursive(1, 2, true)));
 }
 
+TEST_F(DeadOpFixture, UsedPureValueRemainsLive) {
+  OpBuilder builder = OpBuilder::atBlockEnd(module->getBody());
+  auto value = arith::ConstantIntOp::create(builder, loc, 7, 32);
+  arith::AddIOp::create(builder, loc, value, value);
+  EXPECT_TRUE(wouldOpBeTriviallyDead(value));
+  EXPECT_FALSE(isOpTriviallyDead(value));
+}
+
 TEST_F(DeadOpFixture, BoundedWideAndLongRegionsRemainConservative) {
   EXPECT_TRUE(wouldOpBeTriviallyDead(makeRecursive(1, 60)));
   EXPECT_FALSE(wouldOpBeTriviallyDead(makeRecursive(1, 61)));
