@@ -45,7 +45,15 @@ static bool wouldOpBeTriviallyDeadImpl(Operation *rootOp) {
   // for side effects.
   SmallVector<std::pair<Block::iterator, Block::iterator>, 1> effectingOps = {
       std::make_pair(Block::iterator(rootOp), ++Block::iterator(rootOp))};
+  // This query is an optimization: if the recursive walk grows too large,
+  // conservatively retain the operation rather than repeatedly traversing a
+  // large region during canonicalization. Count both visited intervals and
+  // enqueued blocks so wide regions are bounded as well as deep ones.
+  constexpr unsigned maxWork = 64;
+  unsigned work = 0;
   while (!effectingOps.empty()) {
+    if (++work > maxWork)
+      return false;
     Block::iterator &it = effectingOps.back().first;
     Block::iterator end = effectingOps.back().second;
     if (it == end) {
@@ -61,6 +69,8 @@ static bool wouldOpBeTriviallyDeadImpl(Operation *rootOp) {
     if (hasRecursiveEffects) {
       for (Region &region : op->getRegions()) {
         for (auto &block : region) {
+          if (++work > maxWork)
+            return false;
           effectingOps.push_back(std::make_pair(block.begin(), block.end()));
         }
       }
