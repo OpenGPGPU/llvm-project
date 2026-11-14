@@ -196,3 +196,5 @@ foreach P = 0-7 in {
 }
 
 } // Predicates = [HasVendorXOpengpu]
+
+include "RISCVInstrInfoXOpengpuTES.td"
