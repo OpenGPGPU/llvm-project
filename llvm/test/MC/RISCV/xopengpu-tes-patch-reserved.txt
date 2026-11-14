@@ -1,0 +1,11 @@
+# RUN: llvm-mc --disassemble -triple=opengpu -mcpu=opengpu < %s 2>&1 | FileCheck %s
+# CUSTOM1 fn33 with reserved funct3=1 must not decode as the patch read.
+# CHECK: warning: invalid instruction encoding
+0x2b 0x95 0xc5 0x86
+# CUSTOM0 geometry function33 (bits31:25) is a separate scalar encoding.
+# CHECK: warning: invalid instruction encoding
+0x0b 0x85 0xc5 0x42
+# CUSTOM0 with identical upper bits is likewise not a CUSTOM1 read.
+# CHECK: warning: invalid instruction encoding
+0x0b 0x85 0xc5 0x86
+# CHECK-NOT: opengpu.vtes.patch.read
