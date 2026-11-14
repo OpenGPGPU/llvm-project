@@ -509,18 +509,7 @@ def simm21_lsb0_jal : Operand<OtherVT>,
   let OperandType = "OPERAND_PCREL";
 }
 
-def BareSymbol : AsmOperandClass {
-  let Name = "BareSymbol";
-  let RenderMethod = "addImmOperands";
-  let DiagnosticType = "InvalidBareSymbol";
-  let DiagnosticString = "operand must be a bare symbol name";
-  let ParserMethod = "parseBareSymbol";
-}
-
-// A bare symbol.
-def bare_symbol : Operand<XLenVT> {
-  let ParserMatchClass = BareSymbol;
-}
+include "RISCVBareSymbolOperand.td"
 
 def CallSymbol : AsmOperandClass {
   let Name = "CallSymbol";
