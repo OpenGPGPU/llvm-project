@@ -55,28 +55,7 @@ def XOPENGPU_CEASE : RVInstR<0b0011000, 0b000, OPC_SYSTEM, (outs), (ins),
   let isTerminator = 1;
 }
 
-// Custom vector instructions share the RVV register layout (funct6, vm, vs2,
-// vs1, funct3, vd, opcode) but live in a custom opcode space.  The base class
-// mirrors RVInstVBase with a configurable opcode.  The driver profile only
-// emits the unmasked (vm=1 for vtex.sample, vs1=0 for the unary vquad forms).
-class RVInstVOpengpu<bits<6> funct6, RISCVOpcode opcode, dag outs, dag ins,
-                     string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatR> {
-  bits<5> vd;
-  bit vm;
-  bits<5> vs2;
-  bits<5> vs1;
-
-  let Inst{31-26} = funct6;
-  let Inst{25} = vm;
-  let Inst{24-20} = vs2;
-  let Inst{19-15} = vs1;
-  let Inst{14-12} = 0b000;
-  let Inst{11-7} = vd;
-  let Inst{6-0} = opcode.Value;
-
-  let Uses = [VL, VTYPE];
-}
+include "RISCVInstrFormatsXOpengpu.td"
 
 // opengpu.vtex.sample vd, vs1, vs2 - per-lane texture sample of the bound
 // texture at (u=vs1, v=vs2), writing packed RGBA8888 texels to vd.
