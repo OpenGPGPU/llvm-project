@@ -8,6 +8,20 @@
 
 let Predicates = [HasVendorXOpengpu] in {
 
+// opengpu.tess.info rd, rs1 - captured task-context information. Selector 6
+// in the scalar rs1 value is the independently bound input-patch PrimitiveID.
+// Existing TES selectors 0..5 retain their geometry-owner meanings. Encoding
+// support cannot validate a selector value, stage, program profile or owner.
+// The reserved rs2 field is zero. Do not turn this context-dependent read
+// into a pure computation or duplicate it across task/SIMT boundaries.
+let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
+    isConvergent = 1, isNotDuplicable = 1 in
+def XOPENGPU_TESS_INFO : RVInstR<0b0100101, 0b000, OPC_CUSTOM_0,
+        (outs GPR:$rd), (ins GPR:$rs1),
+        "opengpu.tess.info", "$rd, $rs1">, Sched<[]> {
+  let rs2 = 0;
+}
+
 // opengpu.vtes.patch.read vd, vs1, vs2[, v0.t] - TES task-owned patch
 // output inspection. vs1 carries full-width per-lane vertex indices and vs2
 // carries output/per-patch/level descriptors; the retained task binding checks
