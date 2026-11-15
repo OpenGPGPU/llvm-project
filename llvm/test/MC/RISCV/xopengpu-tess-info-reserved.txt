@@ -1,0 +1,5 @@
+# RUN: llvm-mc -disassemble -triple=opengpu -mcpu=opengpu < %s 2>&1 | FileCheck %s
+# Reserved rs2 != 0 and funct3 != 0 must not decode as tess.info.
+# CHECK-COUNT-2: warning: invalid instruction encoding
+0x0b 0x05 0x15 0x4a
+0x0b 0x15 0x05 0x4a
