@@ -81,6 +81,7 @@ def main():
             (directory / "check.cpp").write_text(MAIN)
             binary = directory / "check"
             subprocess.run(["/usr/bin/clang++", "-std=c++17", "-O1", "-fsanitize=address,undefined",
+                "-fno-sanitize-recover=all",
                 str(directory / "check.cpp"), *map(str, sorted(directory.glob("dut_*.cpp"))),
                 "-o", str(binary)], check=True)
             healthy = subprocess.run([str(binary)], text=True, capture_output=True)
