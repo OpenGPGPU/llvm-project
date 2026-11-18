@@ -49,16 +49,25 @@ def main():
     parser.add_argument("--temporary-parent", type=Path, required=True)
     parser.add_argument("--benchmark-blocks", type=int, default=0)
     parser.add_argument("--benchmark-arguments", type=int, default=256)
+    parser.add_argument("--benchmark-baseline", type=Path,
+                        help="unmodified SDK analysis rebuilt with the same compiler and flags")
     args = parser.parse_args()
     if not 0 <= args.benchmark_blocks <= 10000 or not 2 <= args.benchmark_arguments <= 4096:
         parser.error("bounded benchmark requires 0..10000 blocks and 2..4096 arguments")
+    if args.benchmark_blocks and args.benchmark_baseline is None:
+        parser.error("benchmark requires an unmodified --sdk-baseline library")
     release = args.release.resolve(strict=True)
     overlay = args.overlay.resolve(strict=True)
     tool, checker = release / "bin/mlir-opt", release / "bin/FileCheck"
     baseline = {k: v for k, v in os.environ.items() if not k.startswith("DYLD_")}
     changed = {**baseline, "DYLD_LIBRARY_PATH": str(overlay)}
-    for environment, expected in [(baseline, release / "lib/libMLIRAnalysis.dylib"),
-                                  (changed, overlay / "libMLIRAnalysis.dylib")]:
+    providers = [(baseline, release / "lib/libMLIRAnalysis.dylib"),
+                 (changed, overlay / "libMLIRAnalysis.dylib")]
+    if args.benchmark_blocks:
+        rebuilt = args.benchmark_baseline.resolve(strict=True)
+        benchmark_before = {**baseline, "DYLD_LIBRARY_PATH": str(rebuilt)}
+        providers.append((benchmark_before, rebuilt / "libMLIRAnalysis.dylib"))
+    for environment, expected in providers:
         loaded = subprocess.run([str(tool), "--version"], check=True,
                                 env={**environment, "DYLD_PRINT_LIBRARIES": "1"},
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -79,11 +88,15 @@ def main():
         subprocess.run([str(checker), str(original)], input=output, check=True)
     if before != after:
         raise RuntimeError("existing liveness regression output changed")
+    if args.benchmark_blocks and analyze(original, benchmark_before) != before:
+        raise RuntimeError("rebuilt baseline differs from the original SDK analysis")
     with tempfile.TemporaryDirectory(prefix="liveness-", dir=args.temporary_parent) as directory:
         source = Path(directory) / "graphs.mlir"
         source.write_text("\n// -----\n".join(graph(seed) for seed in range(64)))
         if analyze(source, baseline) != analyze(source, changed):
             raise RuntimeError("cyclic/nested SSA liveness differs from the SDK")
+        if args.benchmark_blocks and analyze(source, benchmark_before) != analyze(source, baseline):
+            raise RuntimeError("rebuilt baseline changes cyclic/nested SSA liveness")
         if args.benchmark_blocks:
             binary = Path(directory) / "liveness-benchmark"
             benchmark = Path(__file__).with_name("LivenessBenchmark.cpp")
@@ -96,10 +109,10 @@ def main():
                        "-Wl,-rpath," + str(release / "lib"), "-o", str(binary)]
             subprocess.run(command, check=True, env=baseline)
             source.write_text(graph(73, args.benchmark_blocks, args.benchmark_arguments))
-            rows = {"sdk": [], "changed": []}
+            rows = {"baseline": [], "changed": []}
             signature = None
             for trial in range(3):
-                order = [("sdk", baseline), ("changed", changed)]
+                order = [("baseline", benchmark_before), ("changed", changed)]
                 if trial % 2:
                     order.reverse()
                 for name, environment in order:
@@ -113,7 +126,7 @@ def main():
             print("LIVENESS_BENCHMARK " + json.dumps({
                 "scope": "synthetic analysis construction only; excludes parsing, printing and destruction",
                 "arguments": args.benchmark_arguments, **signature,
-                "sdkMedianSeconds": statistics.median(rows["sdk"]),
+                "baselineMedianSeconds": statistics.median(rows["baseline"]),
                 "changedMedianSeconds": statistics.median(rows["changed"])}))
     print("LIVENESS_EQUIVALENCE_PASS: original FileCheck suite and 64 cyclic/nested SSA graphs; "
           "actual SDK/new library providers verified, byte-identical complete analysis output")

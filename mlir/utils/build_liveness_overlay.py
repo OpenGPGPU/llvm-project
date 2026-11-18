@@ -15,6 +15,8 @@ def main():
     parser.add_argument("--sdk-source", type=Path, required=True,
                         help="LLVM source matching the release; other analyses are unchanged")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--sdk-baseline", action="store_true",
+                        help="rebuild the unmodified SDK analysis for a same-compiler comparison")
     args = parser.parse_args()
     if sys.platform != "darwin":
         parser.error("this isolated shared-library builder supports macOS only")
@@ -27,7 +29,8 @@ def main():
     if not units or any(not name.endswith(".cpp") for name in units) or "Liveness.cpp" not in units:
         raise RuntimeError("unrecognized SDK analysis source list")
     libraries = body.split("LINK_LIBS PUBLIC", 1)[1].split(")", 1)[0].split()
-    paths = [replacement if name == "Liveness.cpp" else source / name for name in units]
+    paths = [replacement if name == "Liveness.cpp" and not args.sdk_baseline
+             else source / name for name in units]
     bound = [*paths, *source.rglob("*.h")]
     def fingerprints():
         return {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in bound}
