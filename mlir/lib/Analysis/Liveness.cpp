@@ -82,17 +82,15 @@ struct BlockInfoBuilder {
   /// methods returns true, if the set has changed (newIn != in), false
   /// otherwise.
   bool updateLiveIn() {
-    ValueSetT newIn = useValues;
-    llvm::set_union(newIn, outValues);
-    llvm::set_subtract(newIn, defValues);
-
-    // It is sufficient to check the set sizes (instead of their contents) since
-    // the live-in set can only grow monotonically during all update operations.
-    if (newIn.size() == inValues.size())
-      return false;
-
-    inValues = std::move(newIn);
-    return true;
+    // Uses and definitions are fixed, and live-out only grows. Keep the
+    // previously computed live-in set instead of copying and reallocating it
+    // on every visit. The constructor already removed definitions from uses.
+    size_t oldSize = inValues.size();
+    llvm::set_union(inValues, useValues);
+    for (Value value : outValues)
+      if (!defValues.contains(value))
+        inValues.insert(value);
+    return inValues.size() != oldSize;
   }
 
   /// Updates live-out information of the current block. It iterates over all
