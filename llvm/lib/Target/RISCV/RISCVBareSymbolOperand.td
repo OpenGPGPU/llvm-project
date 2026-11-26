@@ -18,4 +18,3 @@ def BareSymbol : AsmOperandClass {
 def bare_symbol : Operand<XLenVT> {
   let ParserMatchClass = BareSymbol;
 }
-

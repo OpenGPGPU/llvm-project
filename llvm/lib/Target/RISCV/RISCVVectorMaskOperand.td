@@ -21,6 +21,7 @@ def VMaskCarryInAsmOperand : AsmOperandClass {
   let Name = "RVVMaskCarryInRegOpOperand";
   let RenderMethod = "addRegOperands";
   let PredicateMethod = "isV0Reg";
+  let ParserMethod = "parseMaskReg";
   let DiagnosticType = "InvalidVMaskCarryInRegister";
   let DiagnosticString = "operand must be v0";
 }
@@ -42,4 +43,3 @@ def VMaskCarryInOp : RegisterOperand<VMV0> {
   let EncoderMethod = "getVMaskReg";
   let DecoderMethod = "decodeVMaskReg";
 }
-

@@ -111,9 +111,18 @@ paths to the current checkout and a private directory, put private generated
 headers first, remove shared PCH flags and use ``-O0``. Regenerate MCOptions
 with the configured ``llvm-min-tblgen``. Relink the two tool frontends with all
 sixteen new objects and only the original target-independent libraries.
-Retain the input/MMD and owned-process-group guards described above. A normal
-complete LLVM build is also suitable, but its resource use was not measured
-by this qualification.
+Retain the input/MMD and owned-process-group guards described above.
+
+A complete production Clang/LLVM 24 build has also passed from this source.
+The Release build enabled Clang and the RISCV target with assertions and RTTI
+disabled. It built ``clang``, ``llc``, ``llvm-mc``, ``llvm-objdump``,
+``llvm-objcopy``, ``clang-offload-packager``, ``FileCheck``, ``not``,
+``llvm-config``, ``count`` and ``split-file`` in 2,386.87 seconds with 3.66 GiB
+peak charged memory. The focused lit lane passed all 14 discovered tests: the
+production TableGen check, every ``xopengpu-*`` MC file, the existing Clang
+texture inline-assembly test and the new masked/unmasked TES patch-read Clang
+inline-assembly test. Reproduce with the normal CMake/Ninja LLVM build and run
+``llvm-lit`` over those files with the matching build's tools on PATH.
 
 The focused actual MC commands, with those matching tools on PATH, are::
 
@@ -161,5 +170,6 @@ These MC declarations do not close P26/P40 or the whole OpenGPU ISA:
 * Actual task-owned binding, initialization/isolation, fault/cancel/retirement
   and complete CU/host execution still need matching provider qualification.
 
-No shader execution, GPU result, full LLVM build, Mesa rebuild, JVM or RTL
-qualification was performed by these MC-only checks.
+The complete compiler build and focused MC/Clang tests do not perform shader
+execution, GPU result validation, Mesa rebuild, JVM or RTL qualification.
+Automatic TCS/TES/GS lowering and complete P39/P40 acceptance remain separate.

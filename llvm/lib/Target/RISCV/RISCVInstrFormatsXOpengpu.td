@@ -28,4 +28,3 @@ class RVInstVOpengpu<bits<6> funct6, RISCVOpcode opcode, dag outs, dag ins,
 
   let Uses = [VL, VTYPE];
 }
-
