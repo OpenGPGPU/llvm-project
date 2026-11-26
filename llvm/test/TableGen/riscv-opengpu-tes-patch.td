@@ -51,9 +51,12 @@ def Patch : Target { let InstructionSet = PatchInstrInfo; let AssemblyParsers = 
 // EMIT: MI.getOperand(1)
 // EMIT-NEXT: Value |= (op & 0x1f) << 15;
 // DECODE: OPC_CheckPredicate, 0,
+// DECODE-NEXT: OPC_CheckField, 20, 12, 160, 9,
+// DECODE-NEXT: OPC_CheckField, 12, 3, 0,
+// DECODE-NEXT: OPC_Decode,{{.*}}decode to XOPENGPU_TESS_INFO
+// DECODE: OPC_CheckPredicate, 0,
 // DECODE-NEXT: OPC_CheckField, 26, 6, 33,
 // DECODE-NEXT: OPC_CheckField, 12, 3, 0,
-// DECODE-NEXT: OPC_CheckField, 0, 7, 43,
 // DECODE-NEXT: OPC_Decode,{{.*}}decode to XOPENGPU_VTES_PATCH_READ
 // DECODE: fieldFromInstruction(insn, 7, 5);
 // DECODE: DecodeSimpleRegisterClass<RISCV::V0, 32>
